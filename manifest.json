@@ -1,0 +1,37 @@
+{
+    "manifest_version": 3,
+    "name": "ResuMine",
+    "version": "1.0",
+    "description": "Extract and download resumes from LinkedIn job posts.",
+    "permissions": ["activeTab", "downloads", "scripting", "identity", "storage"],
+    "host_permissions": ["https://www.linkedin.com/*", "https://*.googleusercontent.com/",
+    "https://*.googleapis.com/"],
+    "background": {
+      "service_worker": "background.js"
+    },
+    "action": {
+      "default_popup": "popup.html",
+      "default_icon": {
+        "16": "icons/icon16.png",
+        "48": "icons/icon48.png",
+        "128": "icons/icon128.png"
+      }
+    },
+    "content_scripts": [
+        {
+            "matches": ["https://*.linkedin.com/*"],
+            "js": ["content.js"]
+        }
+    ],
+    "web_accessible_resources": [
+        {
+            "resources": ["xlsx.full.min.js"],
+            "matches": ["<all_urls>"]
+        }
+    ],
+    "icons": {
+      "16": "icons/icon16.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    }
+  }
