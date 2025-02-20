@@ -152,8 +152,7 @@ const waitForNewPageLoad = async (selector, attempts = 3, interval = 3000) => {
     throw new Error(`Element with selector "${selector}" not found after ${attempts} attempts`);
 };
 
-
-
+let stopProcessFlag = false;
 
 async function getApplications() {
     console.log("Starting getApplications function");
@@ -174,6 +173,11 @@ async function getApplications() {
     console.log(`Starting from page ${currentPage} of ${totalPages}`);
 
     for(; currentPage <= totalPages; currentPage++) {
+        if (stopProcessFlag) {
+            console.log("Process stopped at page", currentPage);
+            break;
+        }
+        
         console.log(`Processing page ${currentPage}`);
         
         // Send progress update
@@ -391,61 +395,42 @@ async function getApplications() {
     return validApplications;
 }
 
-
-
-
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     console.log("Message received:", request);
-    if (request.action === 'extract' && !autoStarted) {
-        autoStarted = true;
-        getApplications().then(applications => {
-            if (applications.length === 0) {
-                chrome.runtime.sendMessage({ 
-                    success: false, 
-                    error: "No applications found on the page" 
+
+    if (request.action === 'extract') {
+        stopProcessFlag = false;
+
+        if (request.restart) {
+            autoStarted = false; // Reset the process state
+        }
+
+        if (!autoStarted) {
+            autoStarted = true;
+            getApplications().then(applications => {
+                if (applications.length === 0) {
+                    chrome.runtime.sendMessage({
+                        success: false,
+                        error: "No applications found on the page"
+                    });
+                } else {
+                    processApplications(applications);
+                }
+                autoStarted = false;
+            }).catch(error => {
+                chrome.runtime.sendMessage({
+                    success: false,
+                    error: error.message
                 });
-            } else {
-                console.log("Applications found:", applications);
-                const values = applications.map(app => [
-                    app.serialNumber,
-                    app.name,
-                    app.location,
-                    app.appliedAgo,
-                    app.resumeUrl,
-                    app.yearsOfExperience,
-                    app.currentRole,
-                    app.currentCompany,
-                    app.experienceString
-                ]);
-                console.log("Values to send:", values);
-                chrome.runtime.sendMessage({ 
-                    type: "processApplications", 
-                    data: {
-                        headers: [
-                            'Serial No.', 
-                            'Name',
-                            'Location',
-                            'Applied Ago',
-                            'Resume URL',
-                            'Years of Experience',
-                            'Current Role',
-                            'Current Company',
-                            'Experience History'
-                        ],
-                        values: values
-                    } 
-                });
-            }
-            autoStarted = false;
-        }).catch(error => {
-            console.log('Error:', error);
-            chrome.runtime.sendMessage({ 
-                success: false, 
-                error: error.message 
+                autoStarted = false;
             });
-            autoStarted = false;
-        });
+            sendResponse({ success: true });
+        }
+    } else if (request.action === 'stop') {
+        stopProcessFlag = true;
+        console.log("Process stopped by user");
         sendResponse({ success: true });
     }
+
     return true;
 });
