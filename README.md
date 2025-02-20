@@ -1,5 +1,8 @@
 # **LinkedIn Resume Extractor**
 
+<img width="304" alt="Screenshot 2025-02-20 at 5 58 44 PM" src="https://github.com/user-attachments/assets/89fe7f33-a622-406e-89ac-0ea333fe0204" />
+
+
 ## **Overview**
 The LinkedIn Resume Extractor is a Chrome extension designed to automate the process of extracting applicant details, such as resumes, experience history, and other profile data, from LinkedIn job applications. This tool streamlines the tedious task of manually collecting applicant data, allowing recruiters to focus on candidate evaluation instead of data entry.
 
